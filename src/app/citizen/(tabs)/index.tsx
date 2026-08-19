@@ -12,7 +12,8 @@ import {
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import PostService, { Post } from "../../../../services/post.service"; // Adjust path to where you saved it
+import PostService, { Post } from "../../../../services/post.service";
+import NotificationBell from "../../../components/NotificationBell";
 
 // --- Category Data ---
 const CATEGORIES = [
@@ -86,10 +87,11 @@ export default function BrowseScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header Section */}
-        <View className="px-6 pt-4 pb-5">
+        <View className="px-6 pt-4 pb-5 flex-row items-center justify-between">
           <Text className="text-[28px] font-bold text-[#1E5631] tracking-tight">
             Browse Waste
           </Text>
+          <NotificationBell />
         </View>
 
         {/* Search Bar */}

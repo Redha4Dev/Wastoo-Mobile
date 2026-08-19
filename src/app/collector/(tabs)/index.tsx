@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-  TextInput, ScrollView, RefreshControl, SafeAreaView, Platform
+  TextInput, ScrollView, RefreshControl, SafeAreaView, Platform, Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import PickupService, { Pickup } from '../../../../services/pickup.service';
+import { useAuth } from '../../../../context/AuthProvider';
+import NotificationBell from '../../../components/NotificationBell';
 
 const CATEGORIES = ['All', 'PLASTIC', 'GLASS', 'PAPER', 'METAL', 'ORGANIC', 'TEXTILE', 'MIXED'];
 
@@ -56,7 +58,22 @@ export default function AvailablePickupsScreen() {
 
   const onRefresh = () => { setRefreshing(true); fetchPickups(true); };
 
+  const { user } = useAuth();
+  const isVerified = user?.status === 'ACTIVE';
+
   const handleAccept = async (pickup: Pickup) => {
+    if (!isVerified) {
+      Alert.alert(
+        'Verification Required',
+        'You must complete your identity verification to accept pickups.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Verify Now', onPress: () => router.push('/collector/kyc' as any) }
+        ]
+      );
+      return;
+    }
+
     setAcceptingId(pickup.id);
     try {
       await PickupService.assignCollector(pickup.id);
@@ -156,7 +173,10 @@ export default function AvailablePickupsScreen() {
     <SafeAreaView className="flex-1 bg-[#F7F8F6]" style={{ paddingTop: Platform.OS === 'android' ? 40 : 0 }}>
       {/* Header */}
       <View className="px-5 pt-4 pb-3 bg-white border-b border-[#ECECEC]">
-        <Text className="text-[24px] font-bold text-[#1b1c1c] mb-4">Available Pickups</Text>
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-[24px] font-bold text-[#1b1c1c]">Available Pickups</Text>
+          <NotificationBell />
+        </View>
 
         {/* Search */}
         <View className="flex-row items-center bg-[#F4F4F4] rounded-2xl px-4 h-[48px] mb-4">
