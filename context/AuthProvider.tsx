@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import api from "../lib/api";
 import { appEvents, APP_EVENTS } from "../lib/appEvents";
 import { openGoogleOAuth } from "../services/google-auth.service";
+import { usePushNotifications } from "../src/hooks/usePushNotifications";
 
 export interface User {
   id: number;
@@ -33,10 +34,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const { initPushNotifications } = usePushNotifications();
 
   useEffect(() => {
     hydrateAuthSession();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      initPushNotifications();
+    }
+  }, [user]);
 
   // Listen for the global "session expired" event fired by the API interceptor
   // when token refresh fails. Clear auth and surface a friendly UI.
@@ -127,6 +135,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const cleanupAuth = async () => {
+    // Unregister push token before clearing auth
+    try {
+      const pushToken = await SecureStore.getItemAsync("push_device_token");
+      if (pushToken) {
+        await api.delete(`/notification/${pushToken}/device-token`).catch(() => {});
+        await SecureStore.deleteItemAsync("push_device_token");
+      }
+    } catch (e) {
+      console.warn("Error unregistering push token:", e);
+    }
+
     await SecureStore.deleteItemAsync("access_token");
     await SecureStore.deleteItemAsync("refresh_token");
     delete api.defaults.headers.common["Authorization"];

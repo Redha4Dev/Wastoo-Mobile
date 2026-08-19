@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "830749828853",
+    "project_id": "wastoo",
+    "storage_bucket": "wastoo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830749828853:android:a8ebf700739ae1842807bc",
+        "android_client_info": {
+          "package_name": "com.anonymous.Wastoo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7aMrbdg5jFJzZIRHx6E8djUihAdk4Erk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
