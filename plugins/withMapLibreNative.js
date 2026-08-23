@@ -1,4 +1,4 @@
-const { withSettingsGradle, withAppBuildGradle } = require('@expo/config-plugins');
+const { withSettingsGradle, withAppBuildGradle, withProjectBuildGradle } = require('@expo/config-plugins');
 
 function withMapLibreNative(config) {
   config = withSettingsGradle(config, (config) => {
@@ -17,6 +17,24 @@ function withMapLibreNative(config) {
       config.modResults.contents = config.modResults.contents.replace(
         'implementation("com.facebook.react:react-android")',
         'implementation("com.facebook.react:react-android")\n    implementation project(\':maplibre-react-native\')'
+      );
+    }
+    return config;
+  });
+
+  config = withProjectBuildGradle(config, (config) => {
+    const contents = config.modResults.contents;
+    if (!contents.includes('generateCodegenSchemaFromJavaScript')) {
+      config.modResults.contents = contents.replace(
+        'allprojects {',
+        `allprojects {
+  afterEvaluate { project ->
+    if (project.name == "maplibre-react-native") {
+      project.tasks.named("generateCodegenArtifactsFromSchema").configure {
+        dependsOn project.tasks.named("generateCodegenSchemaFromJavaScript")
+      }
+    }
+  }`
       );
     }
     return config;
