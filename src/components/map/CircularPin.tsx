@@ -1,4 +1,4 @@
-import { Marker } from "react-native-maps";
+import { PointAnnotation } from "@maplibre/maplibre-react-native";
 import { View } from "react-native";
 import Svg, { Circle, ClipPath, Defs, Image as SvgImage } from "react-native-svg";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -20,8 +20,6 @@ export default function CircularPin({
   size = 44,
   onPress,
 }: CircularPinProps) {
-  // react-native-maps snapshots custom markers in a fixed ~34px box anchored
-  // top-left, so keep the view within that box and let the circle fill it.
   const drawSize = Math.min(size, 34);
   const stroke = 3;
   const ringR = drawSize / 2 - 1;
@@ -29,10 +27,9 @@ export default function CircularPin({
   const inner = drawSize - stroke * 2;
 
   return (
-    <Marker
+    <PointAnnotation
       coordinate={coordinate}
       onPress={onPress}
-      anchor={{ x: 0.5, y: 0.5 }}
     >
       <View
         style={{
@@ -89,6 +86,6 @@ export default function CircularPin({
           </View>
         ) : null}
       </View>
-    </Marker>
+    </PointAnnotation>
   );
 }

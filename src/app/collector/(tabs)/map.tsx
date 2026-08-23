@@ -1,4 +1,4 @@
-import MapView, { Marker } from "react-native-maps";
+import MapView from "@maplibre/maplibre-react-native";
 import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
@@ -14,6 +14,7 @@ import CenterPreviewCard from "../../../components/map/CenterPreviewCard";
 import CircularPin from "../../../components/map/CircularPin";
 import { useRouter } from "expo-router";
 import { calculateDistance } from "haversine-toolkit";
+import { regionToCamera } from "../../../components/map/mapConfig";
 
 const pickupRingColor = (status: string): string => {
   switch (status) {
@@ -43,22 +44,22 @@ export default function CollectorMapScreen() {
     (value): value is WasteCategory => typeof value !== "number",
   );
 
-const getDistanceText = (item: { latitude: number; longitude: number }) => {
-  if (!location) return "Distance unavailable";
+  const getDistanceText = (item: { latitude: number; longitude: number }) => {
+    if (!location) return "Distance unavailable";
 
-  const distanceKm = calculateDistance(
-    {
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    },
-    {
-      latitude: item.latitude,
-      longitude: item.longitude,
-    }
-  );
+    const distanceKm = calculateDistance(
+      {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      },
+      {
+        latitude: item.latitude,
+        longitude: item.longitude,
+      }
+    );
 
-  return `${distanceKm.toFixed(1)} km away`;
-};
+    return `${distanceKm.toFixed(1)} km away`;
+  };
 
   useEffect(() => {
     const getLocation = async () => {
@@ -123,29 +124,23 @@ const getDistanceText = (item: { latitude: number; longitude: number }) => {
     );
   }
 
+  const initialCamera = regionToCamera({
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+
   return (
     <View style={styles.container}>
       <MapView
         style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
+        initialCamera={initialCamera}
         onPress={() => {
           setSelectedPickup(null);
           setSelectedCenter(null);
         }}
       >
-        <Marker
-          coordinate={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          }}
-          pinColor="green"
-        />
-
         {mapPickups.map((pickup) =>
           pickup.post?.latitude != null && pickup.post?.longitude != null ? (
             <CircularPin

@@ -8,7 +8,8 @@ import {
   View,
 } from "react-native";
 import * as Location from "expo-location";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { PointAnnotation, UserLocation } from "@maplibre/maplibre-react-native";
+import { MAPLIBRE_STYLE } from "./mapConfig";
 
 export type PickupLocation = {
   latitude: number;
@@ -21,11 +22,12 @@ type Props = {
   onLocationSelect?: (location: PickupLocation) => void;
 };
 
-const DEFAULT_REGION = {
-  latitude: 24.4539,
-  longitude: 54.3773,
-  latitudeDelta: 0.05,
-  longitudeDelta: 0.05,
+const DEFAULT_CAMERA = {
+  center: {
+    latitude: 24.4539,
+    longitude: 54.3773,
+  },
+  zoom: 14.5,
 };
 
 export default function PickupLocationMap({
@@ -35,7 +37,7 @@ export default function PickupLocationMap({
   const [selectedLocation, setSelectedLocation] = useState<PickupLocation | null>(
     backendLocation ?? null,
   );
-  const [region, setRegion] = useState(DEFAULT_REGION);
+  const [camera, setCamera] = useState(DEFAULT_CAMERA);
   const [locationStatus, setLocationStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -43,11 +45,12 @@ export default function PickupLocationMap({
 
   const updateLocation = (location: PickupLocation) => {
     setSelectedLocation(location);
-    setRegion({
-      latitude: location.latitude,
-      longitude: location.longitude,
-      latitudeDelta: 0.05,
-      longitudeDelta: 0.05,
+    setCamera({
+      center: {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      },
+      zoom: 14.5,
     });
     setLocationError("");
     onLocationSelect?.(location);
@@ -156,9 +159,16 @@ export default function PickupLocationMap({
           <>
             <MapView
               style={styles.map}
-              region={region}
-              showsUserLocation
-              onRegionChangeComplete={(nextRegion) => setRegion(nextRegion)}
+              camera={camera}
+              onRegionDidChange={(nextRegion) => {
+                setCamera({
+                  center: {
+                    latitude: nextRegion.latitude,
+                    longitude: nextRegion.longitude,
+                  },
+                  zoom: nextRegion.zoomLevel,
+                });
+              }}
               onPress={(event) => {
                 const coordinate = event.nativeEvent.coordinate;
                 updateLocation({
@@ -167,13 +177,15 @@ export default function PickupLocationMap({
                 });
               }}
             >
+              <UserLocation />
+
               {selectedLocation ? (
-                <Marker
+                <PointAnnotation
+                  id="selected-pin"
                   coordinate={{
                     latitude: selectedLocation.latitude,
                     longitude: selectedLocation.longitude,
                   }}
-                  pinColor="#006d37"
                 />
               ) : null}
             </MapView>

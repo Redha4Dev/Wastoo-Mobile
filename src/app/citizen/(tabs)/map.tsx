@@ -1,4 +1,4 @@
-import MapView, { Marker } from "react-native-maps";
+import MapView from "@maplibre/maplibre-react-native";
 import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
@@ -14,7 +14,8 @@ import MapRadiusSlider from "../../../components/map/MapRadiusSlider";
 import PostPreviewCard from "../../../components/map/PostPreviewCard";
 import CenterPreviewCard from "../../../components/map/CenterPreviewCard";
 import CircularPin from "../../../components/map/CircularPin";
-import { calculateDistance } from "haversine-toolkit"
+import { calculateDistance } from "haversine-toolkit";
+import { DEFAULT_CAMERA, regionToCamera } from "../../../components/map/mapConfig";
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -33,22 +34,22 @@ export default function MapScreen() {
     ),
   ];
 
-const getDistanceText = (item: { latitude: number; longitude: number }) => {
-  if (!location) return "Distance unavailable";
+  const getDistanceText = (item: { latitude: number; longitude: number }) => {
+    if (!location) return "Distance unavailable";
 
-  const distanceKm = calculateDistance(
-    {
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    },
-    {
-      latitude: item.latitude,
-      longitude: item.longitude,
-    }
-  );
+    const distanceKm = calculateDistance(
+      {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      },
+      {
+        latitude: item.latitude,
+        longitude: item.longitude,
+      }
+    );
 
-  return `${distanceKm.toFixed(1)} km away`;
-};
+    return `${distanceKm.toFixed(1)} km away`;
+  };
 
   useEffect(() => {
     const getLocation = async () => {
@@ -116,31 +117,25 @@ const getDistanceText = (item: { latitude: number; longitude: number }) => {
     );
   }
 
+  const initialCamera = regionToCamera({
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+
   console.log(mapCenters);
-  
+
   return (
     <View style={styles.container}>
       <MapView
         style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
+        initialCamera={initialCamera}
         onPress={() => {
           setSelectedPost(null);
           setSelectedCenter(null);
         }}
       >
-        <Marker
-          coordinate={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          }}
-          pinColor="purple"
-        />
-
         {mapPosts.map((post) => (
           <CircularPin
             key={String(post.id)}
