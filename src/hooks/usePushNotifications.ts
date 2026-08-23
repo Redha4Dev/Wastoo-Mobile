@@ -105,9 +105,29 @@ export function usePushNotifications() {
       }
     });
 
+    // Listener for FCM token rotation — re-register the new token
+    const pushTokenListener = Notifications.addPushTokenListener(async (tokenResponse) => {
+      const newToken = tokenResponse.data;
+      if (!newToken) return;
+
+      try {
+        await api.post('/notification/device-token', {
+          token: newToken,
+          platform: Platform.OS.toUpperCase(),
+        });
+        await SecureStore.setItemAsync("push_device_token", newToken);
+        setDeviceToken(newToken);
+      } catch (err: any) {
+        if (err?.response?.status !== 409) {
+          console.log('Failed to re-register rotated push token', err);
+        }
+      }
+    });
+
     return () => {
       notificationListener.current?.remove();
       responseListener.current?.remove();
+      pushTokenListener?.remove();
     };
   }, []);
 

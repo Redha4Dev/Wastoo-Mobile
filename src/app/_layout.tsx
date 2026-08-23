@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../../context/AuthProvider";
 import SessionExpiredModal from "../components/SessionExpiredModal";
 import "../global.css";
@@ -41,9 +42,11 @@ function NavigationGuard() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <NavigationGuard />
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <NavigationGuard />
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }
 
