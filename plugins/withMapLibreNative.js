@@ -46,9 +46,9 @@ function withMapLibreNative(config) {
 
           while (i < lines.length) {
             if (lines[i].includes('buildscript {')) {
-              let depth = 0;
+              let depth = 1;
               i++;
-              while (i < lines.length) {
+              while (i < lines.length && depth > 0) {
                 for (const ch of lines[i]) {
                   if (ch === '{') depth++;
                   if (ch === '}') depth--;
