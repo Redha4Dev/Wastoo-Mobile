@@ -57,7 +57,14 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Wasto to use your location to show pickup requests near you."
+        }
+      ],
+      "./plugins/withMapLibreNative"
     ],
     "experiments": {
       "typedRoutes": true
