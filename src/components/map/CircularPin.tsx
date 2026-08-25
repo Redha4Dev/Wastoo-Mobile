@@ -20,7 +20,7 @@ export default function CircularPin({
   size = 44,
   onPress,
 }: CircularPinProps) {
-  const drawSize = Math.min(size, 34);
+  const drawSize = Math.min(size, 48);
   const stroke = 3;
   const ringR = drawSize / 2 - 1;
   const clipR = ringR - 1;
