@@ -1,7 +1,7 @@
-import MapView, { Marker } from "react-native-maps";
+import { Map, Camera } from "@maplibre/maplibre-react-native";
 import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import * as Location from "expo-location";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import MapService, {
   MapPostsResponse,
@@ -14,7 +14,8 @@ import MapRadiusSlider from "../../../components/map/MapRadiusSlider";
 import PostPreviewCard from "../../../components/map/PostPreviewCard";
 import CenterPreviewCard from "../../../components/map/CenterPreviewCard";
 import CircularPin from "../../../components/map/CircularPin";
-import { calculateDistance } from "haversine-toolkit"
+import { calculateDistance } from "haversine-toolkit";
+import { MAPLIBRE_STYLE } from "../../../components/map/mapConfig";
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -27,28 +28,29 @@ export default function MapScreen() {
   const [selectedCenter, setSelectedCenter] = useState<MapCenterResponse | null>(null);
 
   const router = useRouter();
-  const categories: Array<WasteCategory> = [
+  const markerPressedRef = useRef(false);
+  const categories: WasteCategory[] = [
     ...Object.values(WasteCategory).filter(
       (value): value is WasteCategory => typeof value != "number",
     ),
   ];
 
-const getDistanceText = (item: { latitude: number; longitude: number }) => {
-  if (!location) return "Distance unavailable";
+  const getDistanceText = (item: { latitude: number; longitude: number }) => {
+    if (!location) return "Distance unavailable";
 
-  const distanceKm = calculateDistance(
-    {
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    },
-    {
-      latitude: item.latitude,
-      longitude: item.longitude,
-    }
-  );
+    const distanceKm = calculateDistance(
+      {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      },
+      {
+        latitude: item.latitude,
+        longitude: item.longitude,
+      }
+    );
 
-  return `${distanceKm.toFixed(1)} km away`;
-};
+    return `${distanceKm.toFixed(1)} km away`;
+  };
 
   useEffect(() => {
     const getLocation = async () => {
@@ -117,30 +119,28 @@ const getDistanceText = (item: { latitude: number; longitude: number }) => {
   }
 
   console.log(mapCenters);
-  
+
   return (
     <View style={styles.container}>
-      <MapView
-        style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
+      <Map
+        mapStyle={MAPLIBRE_STYLE as any}
+        onRegionDidChange={(e: any) => {
         }}
         onPress={() => {
-          setSelectedPost(null);
-          setSelectedCenter(null);
+          if (!markerPressedRef.current) {
+            setSelectedPost(null);
+            setSelectedCenter(null);
+          }
+          markerPressedRef.current = false;
         }}
       >
-        <Marker
-          coordinate={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
+        <Camera
+          initialViewState={{
+            center: [location.coords.longitude, location.coords.latitude],
+            zoom: 14,
           }}
-          pinColor="purple"
+          maxZoom={19}
         />
-
         {mapPosts.map((post) => (
           <CircularPin
             key={String(post.id)}
@@ -154,6 +154,7 @@ const getDistanceText = (item: { latitude: number; longitude: number }) => {
                   : "#9CA3AF"
             }
             onPress={() => {
+              markerPressedRef.current = true;
               setSelectedPost(post);
               setSelectedCenter(null);
             }}
@@ -167,12 +168,13 @@ const getDistanceText = (item: { latitude: number; longitude: number }) => {
             ringColor="#16a34a"
             iconName="recycle"
             onPress={() => {
+              markerPressedRef.current = true;
               setSelectedCenter(center);
               setSelectedPost(null);
             }}
           />
         ))}
-      </MapView>
+      </Map>
 
       <MapFilterBar
         categories={categories}
