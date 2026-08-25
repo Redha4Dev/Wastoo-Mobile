@@ -64,11 +64,8 @@
           "locationAlwaysAndWhenInUsePermission": "Allow Wasto to use your location to show pickup requests near you."
         }
       ],
-      "./plugins/withMapLibreNative"
+      "@maplibre/maplibre-react-native"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
       "router": {},
       "eas": {
