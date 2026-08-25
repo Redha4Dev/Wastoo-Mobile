@@ -1,4 +1,4 @@
-import { PointAnnotation } from "@maplibre/maplibre-react-native";
+import { Marker } from "@maplibre/maplibre-react-native";
 import { View } from "react-native";
 import Svg, { Circle, ClipPath, Defs, Image as SvgImage } from "react-native-svg";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -27,8 +27,8 @@ export default function CircularPin({
   const inner = drawSize - stroke * 2;
 
   return (
-    <PointAnnotation
-      coordinate={coordinate}
+    <Marker
+      lngLat={[coordinate.longitude, coordinate.latitude]}
       onPress={onPress}
     >
       <View
@@ -86,6 +86,6 @@ export default function CircularPin({
           </View>
         ) : null}
       </View>
-    </PointAnnotation>
+    </Marker>
   );
 }

@@ -1,7 +1,7 @@
-import MapView from "@maplibre/maplibre-react-native";
+import { Map, Camera } from "@maplibre/maplibre-react-native";
 import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import * as Location from "expo-location";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
 import MapService, {
   MapPostsResponse,
@@ -15,7 +15,7 @@ import PostPreviewCard from "../../../components/map/PostPreviewCard";
 import CenterPreviewCard from "../../../components/map/CenterPreviewCard";
 import CircularPin from "../../../components/map/CircularPin";
 import { calculateDistance } from "haversine-toolkit";
-import { DEFAULT_CAMERA, regionToCamera } from "../../../components/map/mapConfig";
+import { MAPLIBRE_STYLE } from "../../../components/map/mapConfig";
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -28,7 +28,8 @@ export default function MapScreen() {
   const [selectedCenter, setSelectedCenter] = useState<MapCenterResponse | null>(null);
 
   const router = useRouter();
-  const categories: Array<WasteCategory> = [
+  const markerPressedRef = useRef(false);
+  const categories: WasteCategory[] = [
     ...Object.values(WasteCategory).filter(
       (value): value is WasteCategory => typeof value != "number",
     ),
@@ -117,25 +118,29 @@ export default function MapScreen() {
     );
   }
 
-  const initialCamera = regionToCamera({
-    latitude: location.coords.latitude,
-    longitude: location.coords.longitude,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  });
-
   console.log(mapCenters);
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={StyleSheet.absoluteFillObject}
-        initialCamera={initialCamera}
+      <Map
+        mapStyle={MAPLIBRE_STYLE as any}
+        onRegionDidChange={(e: any) => {
+        }}
         onPress={() => {
-          setSelectedPost(null);
-          setSelectedCenter(null);
+          if (!markerPressedRef.current) {
+            setSelectedPost(null);
+            setSelectedCenter(null);
+          }
+          markerPressedRef.current = false;
         }}
       >
+        <Camera
+          initialViewState={{
+            center: [location.coords.longitude, location.coords.latitude],
+            zoom: 14,
+          }}
+          maxZoom={19}
+        />
         {mapPosts.map((post) => (
           <CircularPin
             key={String(post.id)}
@@ -149,6 +154,7 @@ export default function MapScreen() {
                   : "#9CA3AF"
             }
             onPress={() => {
+              markerPressedRef.current = true;
               setSelectedPost(post);
               setSelectedCenter(null);
             }}
@@ -162,12 +168,13 @@ export default function MapScreen() {
             ringColor="#16a34a"
             iconName="recycle"
             onPress={() => {
+              markerPressedRef.current = true;
               setSelectedCenter(center);
               setSelectedPost(null);
             }}
           />
         ))}
-      </MapView>
+      </Map>
 
       <MapFilterBar
         categories={categories}

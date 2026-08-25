@@ -1,7 +1,7 @@
-import MapView from "@maplibre/maplibre-react-native";
+import { Map, Camera } from "@maplibre/maplibre-react-native";
 import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import * as Location from "expo-location";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MapService, {
   MapCenterResponse,
   MapPickupResponse,
@@ -14,7 +14,7 @@ import CenterPreviewCard from "../../../components/map/CenterPreviewCard";
 import CircularPin from "../../../components/map/CircularPin";
 import { useRouter } from "expo-router";
 import { calculateDistance } from "haversine-toolkit";
-import { regionToCamera } from "../../../components/map/mapConfig";
+import { MAPLIBRE_STYLE } from "../../../components/map/mapConfig";
 
 const pickupRingColor = (status: string): string => {
   switch (status) {
@@ -31,6 +31,7 @@ const pickupRingColor = (status: string): string => {
 
 export default function CollectorMapScreen() {
   const router = useRouter();
+  const markerPressedRef = useRef(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [mapPickups, setMapPickups] = useState<MapPickupResponse[]>([]);
   const [mapCenters, setMapCenters] = useState<MapCenterResponse[]>([]);
@@ -40,7 +41,7 @@ export default function CollectorMapScreen() {
   const [selectedPickup, setSelectedPickup] = useState<MapPickupResponse | null>(null);
   const [selectedCenter, setSelectedCenter] = useState<MapCenterResponse | null>(null);
 
-  const categories: Array<WasteCategory> = Object.values(WasteCategory).filter(
+  const categories: WasteCategory[] = Object.values(WasteCategory).filter(
     (value): value is WasteCategory => typeof value !== "number",
   );
 
@@ -124,23 +125,27 @@ export default function CollectorMapScreen() {
     );
   }
 
-  const initialCamera = regionToCamera({
-    latitude: location.coords.latitude,
-    longitude: location.coords.longitude,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  });
-
   return (
     <View style={styles.container}>
-      <MapView
-        style={StyleSheet.absoluteFillObject}
-        initialCamera={initialCamera}
+      <Map
+        mapStyle={MAPLIBRE_STYLE as any}
+        onRegionDidChange={(e: any) => {
+        }}
         onPress={() => {
-          setSelectedPickup(null);
-          setSelectedCenter(null);
+          if (!markerPressedRef.current) {
+            setSelectedPickup(null);
+            setSelectedCenter(null);
+          }
+          markerPressedRef.current = false;
         }}
       >
+        <Camera
+          initialViewState={{
+            center: [location.coords.longitude, location.coords.latitude],
+            zoom: 14,
+          }}
+          maxZoom={19}
+        />
         {mapPickups.map((pickup) =>
           pickup.post?.latitude != null && pickup.post?.longitude != null ? (
             <CircularPin
@@ -152,6 +157,7 @@ export default function CollectorMapScreen() {
               image={pickup.post.image}
               ringColor={pickupRingColor(pickup.status)}
               onPress={() => {
+                markerPressedRef.current = true;
                 setSelectedPickup(pickup);
                 setSelectedCenter(null);
               }}
@@ -169,12 +175,13 @@ export default function CollectorMapScreen() {
             ringColor="#16a34a"
             iconName="recycle"
             onPress={() => {
+              markerPressedRef.current = true;
               setSelectedCenter(center);
               setSelectedPickup(null);
             }}
           />
         ))}
-      </MapView>
+      </Map>
 
       <MapFilterBar
         categories={categories}

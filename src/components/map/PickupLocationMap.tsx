@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import * as Location from "expo-location";
-import MapView, { PointAnnotation, UserLocation } from "@maplibre/maplibre-react-native";
+import { Map, UserLocation, Marker, Camera } from "@maplibre/maplibre-react-native";
 import { MAPLIBRE_STYLE } from "./mapConfig";
 
 export type PickupLocation = {
@@ -22,14 +22,6 @@ type Props = {
   onLocationSelect?: (location: PickupLocation) => void;
 };
 
-const DEFAULT_CAMERA = {
-  center: {
-    latitude: 24.4539,
-    longitude: 54.3773,
-  },
-  zoom: 14.5,
-};
-
 export default function PickupLocationMap({
   backendLocation,
   onLocationSelect,
@@ -37,24 +29,16 @@ export default function PickupLocationMap({
   const [selectedLocation, setSelectedLocation] = useState<PickupLocation | null>(
     backendLocation ?? null,
   );
-  const [camera, setCamera] = useState(DEFAULT_CAMERA);
   const [locationStatus, setLocationStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
   const [locationError, setLocationError] = useState("");
 
-  const updateLocation = (location: PickupLocation) => {
+  const updateLocation = useCallback((location: PickupLocation) => {
     setSelectedLocation(location);
-    setCamera({
-      center: {
-        latitude: location.latitude,
-        longitude: location.longitude,
-      },
-      zoom: 14.5,
-    });
     setLocationError("");
     onLocationSelect?.(location);
-  };
+  }, [onLocationSelect]);
 
   useEffect(() => {
     const getInitialLocation = async () => {
@@ -157,38 +141,38 @@ export default function PickupLocationMap({
           </View>
         ) : (
           <>
-            <MapView
-              style={styles.map}
-              camera={camera}
-              onRegionDidChange={(nextRegion) => {
-                setCamera({
-                  center: {
-                    latitude: nextRegion.latitude,
-                    longitude: nextRegion.longitude,
-                  },
-                  zoom: nextRegion.zoomLevel,
-                });
-              }}
-              onPress={(event) => {
-                const coordinate = event.nativeEvent.coordinate;
-                updateLocation({
-                  latitude: coordinate.latitude,
-                  longitude: coordinate.longitude,
-                });
-              }}
-            >
-              <UserLocation />
-
-              {selectedLocation ? (
-                <PointAnnotation
-                  id="selected-pin"
-                  coordinate={{
-                    latitude: selectedLocation.latitude,
-                    longitude: selectedLocation.longitude,
+            <View style={styles.map}>
+              <Map
+                mapStyle={MAPLIBRE_STYLE as any}
+                onRegionDidChange={(e: any) => {
+                }}
+                onPress={(event: any) => {
+                  const [longitude, latitude] = event.lngLat;
+                  updateLocation({
+                    latitude,
+                    longitude,
+                  });
+                }}
+              >
+                <Camera
+                  initialViewState={{
+                    center: [backendLocation?.longitude ?? 54.3773, backendLocation?.latitude ?? 24.4539],
+                    zoom: 14,
                   }}
+                  maxZoom={19}
                 />
-              ) : null}
-            </MapView>
+                <UserLocation />
+
+                {selectedLocation ? (
+                  <Marker
+                    id="selected-pin"
+                    lngLat={[selectedLocation.longitude, selectedLocation.latitude]}
+                  >
+                    <View style={{ width: 1, height: 1 }} />
+                  </Marker>
+                ) : null}
+              </Map>
+            </View>
 
             <View style={styles.infoBox}>
               <Text style={styles.coordsText}>

@@ -1,11 +1,14 @@
-import { MapViewProps } from "@maplibre/maplibre-react-native";
-
 export const MAPLIBRE_STYLE = {
   version: 8,
   sources: {
     "osm-tiles": {
       type: "raster",
-      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tiles: [
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      ],
       tileSize: 256,
       attribution: "© OpenStreetMap contributors",
     },
@@ -32,7 +35,7 @@ export function regionToCamera(region: {
   longitude: number;
   latitudeDelta: number;
   longitudeDelta: number;
-}): MapViewProps["initialCamera"] {
+}): { center: { latitude: number; longitude: number }; zoom: number } {
   const avgDelta = (region.latitudeDelta + region.longitudeDelta) / 2;
   const zoom = Math.max(2, Math.min(22, 14 - Math.log2(avgDelta)));
   return {
