@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { WasteCategory } from "../../../services/map.service";
 
 interface MapFilterBarProps {
-  categories: Array<WasteCategory | "ALL">;
+  categories: (WasteCategory | "ALL")[];
   selectedCategory: WasteCategory | "ALL";
   onSelectCategory: (category: WasteCategory | "ALL") => void;
 }

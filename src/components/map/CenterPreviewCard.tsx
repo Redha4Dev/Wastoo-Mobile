@@ -13,7 +13,7 @@ export default function CenterPreviewCard({
   onViewDetails,
 }: CenterPreviewCardProps) {
   console.log(center)
-  const phoneNumber = center.owner.phone ??  "Phone number coming soon";
+  const phoneNumber = center.phone ?? "Phone number coming soon";
 
   return (
     <View style={styles.previewCard}>
@@ -44,10 +44,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
-    bottom: 140,
+    bottom: 120,
     backgroundColor: "#fff",
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     elevation: 6,
     shadowColor: "#000",
     shadowOpacity: 0.2,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   previewTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: "#111827",
     flex: 1,
@@ -82,17 +82,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   previewMeta: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#4b5563",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   previewButton: {
-    marginTop: 10,
+    marginTop: 8,
     alignSelf: "flex-start",
     backgroundColor: "#16a34a",
     borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   previewButtonText: {
     color: "#fff",

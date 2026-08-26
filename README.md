@@ -1,5 +1,9 @@
 # Welcome to your Expo app 👋
 
+## New Architecture note
+
+This project disables React Native's New Architecture (`newArchEnabled: false` in `app.json`). This is required because `@maplibre/maplibre-react-native` does not yet support the New Architecture (Fabric/TurboModules) and fails to register modules such as `MLRNCameraModule` when it is enabled. See the MapLibre React Native repo for the latest status on New Architecture support.
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
